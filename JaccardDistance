@@ -1,0 +1,23 @@
+def soft_jacard_dis(x, y, t=5):
+    """
+        Args:
+          x: pytorch Variable, with shape [m, d]
+          y: pytorch Variable, with shape [n, d]
+        Returns:
+          dist: pytorch Variable, with shape [m, n]
+        """
+    m, n = x.size(0), y.size(0)
+    d = x.size(1)
+
+    x_soft_max = torch.softmax(t*x.float(), dim=1)*x
+    y_soft_max = torch.softmax(t*y.float(), dim=1)*y
+
+    x_soft_min = torch.softmax(-t * x.float(), dim=1)*x
+    y_soft_min = torch.softmax(-t * y.float(), dim=1)*y
+    #这一步用矩阵进行计算，利用a+b = ab-(a-1)(b-1)+1的原理
+    max_matrix = x_soft_max.mm(y_soft_max.t())-(x_soft_max-1).mm((y_soft_max-1).t())+d
+    min_matrix = x_soft_min.mm(y_soft_min.t())-(x_soft_min-1).mm((y_soft_min-1).t())+d
+
+    dist = min_matrix/max_matrix
+    dist = 1. - dist
+    return dist
